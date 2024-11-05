@@ -1,34 +1,67 @@
-node {
-    def app
+pipeline {
 
-    stage('Clone repository') {
-      
+    agent any
 
-        checkout scm
-    }
-
-    stage('Build image') {
-  
-       app = docker.build("narsimha2580/test")
-    }
-
-    stage('Test image') {
-  
-
-        app.inside {
-            sh 'echo "Tests passed"'
-        }
-    }
-
-    stage('Push image') {
-        
-        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-            app.push("${env.BUILD_NUMBER}")
-        }
-    }
     
-    stage('Trigger ManifestUpdate') {
-                echo "triggering updatemanifestjob"
-                build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
+
+    stages {
+
+        stage('Checkout Code') {
+
+            steps {
+
+                git branch: 'main', url: 'https://github.com/itsmeteja9/Python-docker.git'  // Replace with your repo URL
+
+            }
+
         }
+
+
+
+        stage('Build Docker Image') {
+
+            steps {
+
+                sh 'docker build -t itsmeteja9/python-docker .'  // Replace with your Docker Hub username and image name
+
+            }
+
+        }
+
+
+
+        stage('Tag Docker Image') {
+
+            steps {
+
+                bat 'docker tag your-username/your-image:latest your-username/your-image:latest'
+
+            }
+
+        }
+
+
+
+        stage('Push Docker Image') {
+
+            steps {
+
+                withCredentials( [  // Use credentials configured in Jenkins
+
+                    username: 'itsmeteja9', 
+
+                    password: 'Applecloud@90' 
+
+                ]) {
+
+                    bat 'docker push your-username/your-image:latest' 
+
+                }
+
+            }
+
+        }
+
+    }
+
 }
