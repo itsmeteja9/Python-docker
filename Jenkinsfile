@@ -1,31 +1,34 @@
- pipeline {
-       agent any
+node {
+    def app
 
-       environment {
-           DOCKER_REGISTRY = 'itsmeteja9/python-docker'
-           DOCKER_IMAGE = 'python-app'
-       }
+    stage('Clone repository') {
+      
 
-       stages {
-           stage('Build') {
-               steps {
-                   bat 'docker build -t %DOCKER_REGISTRY%/%DOCKER_IMAGE%:latest .'
-               }
-           }
-           stage('Test') {
-               steps {
-                   bat 'docker run -t %DOCKER_REGISTRY%/%DOCKER_IMAGE%:latest pytest'
-               }
-           }
-           stage('Push') {
-               steps {
-                   bat 'docker push %DOCKER_REGISTRY%/%DOCKER_IMAGE%:latest'
-               }
-           }
-           stage('Deploy') {
-               steps {
-                   bat 'docker run -d -p 80:80 %DOCKER_REGISTRY%/%DOCKER_IMAGE%:latest'
-               }
-           }
-       }
-   }
+        checkout scm
+    }
+
+    stage('Build image') {
+  
+       app = docker.build("narsimha2580/test")
+    }
+
+    stage('Test image') {
+  
+
+        app.inside {
+            sh 'echo "Tests passed"'
+        }
+    }
+
+    stage('Push image') {
+        
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+            app.push("${env.BUILD_NUMBER}")
+        }
+    }
+    
+    stage('Trigger ManifestUpdate') {
+                echo "triggering updatemanifestjob"
+                build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
+        }
+}
