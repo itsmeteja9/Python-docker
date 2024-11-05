@@ -1,16 +1,10 @@
-pipeline { 
+node {
+    def app
 
-    environment { 
+    stage('Clone repository') {
 
-        registry = "itsmeteja9/java-docker" 
-
-        registryCredential = 'dockerjenkinsintegration' 
-
-        dockerImage = '' 
-
+        checkout scm
     }
-    agent any 
- 
 
     stage('Build image') {
   
@@ -36,28 +30,3 @@ pipeline {
                 build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
         }
 }
-
-
-        stage('Push Docker Image') {
-
-            steps {
-
-                withCredentials( [  // Use credentials configured in Jenkins
-
-                    username: 'itsmeteja9', 
-
-                    password: 'Applecloud@90' 
-
-                ]) {
-
-                    bat 'docker push your-username/your-image:latest' 
-
-                }
-
-            }
-
-        }
-
-    }
-
-
