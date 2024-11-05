@@ -10,13 +10,7 @@ pipeline {
 
     }
     agent any 
-  node {
-    def app
-
-    stage('Clone repository') {
-
-        checkout scm
-    }
+ 
 
     stage('Build image') {
   
