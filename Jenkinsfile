@@ -8,7 +8,7 @@ node {
 
     stage('Build image') {
   
-       app = docker.build("itsmeteja9/java-docker")
+       app = docker.build("itsmeteja9/python-docker")
     }
 
     stage('Test image') {
