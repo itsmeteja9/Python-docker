@@ -1,32 +1,59 @@
-node {
-    def app
+pipeline { 
 
-    stage('Clone repository') {
+    environment { 
 
-        checkout scm
+        registry = "itsmeteja9/java-docker" 
+
+        registryCredential = 'dockerjenkinsintegration' 
+
+        dockerImage = '' 
+
     }
+    agent any 
 
-    stage('Build image') {
-  
-       app = docker.build("itsmeteja9/python-docker")
-    }
+    stages { 
 
-    stage('Test image') {
 
-        app.inside {
-            bat 'echo "Tests passed"'
+        stage('Building our image') { 
+
+            steps { 
+
+                script { 
+
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER" 
+
+                }
+            } 
         }
+
+        stage('Deploy our image') { 
+
+            steps { 
+
+                script { 
+
+                    docker.withRegistry( '', registryCredential ) { 
+
+                        dockerImage.push() 
+
+                 }
+
+                } 
+
+            }
+
+        } 
+
+        stage('Cleaning up') { 
+
+            steps { 
+
+                bat "docker rmi $registry:$BUILD_NUMBER" 
+
+            }
+
+        } 
+
     }
 
-    stage('Push image') {
-        
-        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-            app.push("${env.BUILD_NUMBER}")
-        }
-    }
-    
-    stage('Trigger ManifestUpdate') {
-                echo "triggering updatemanifestjob"
-                build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
-        }
 }
